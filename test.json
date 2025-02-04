@@ -1,0 +1,36 @@
+{
+  "participants": [
+    {
+      "members": [
+        {
+          "sub": "acc_6777f5fdaecc9100422474fa",
+          "calendar_ids": [
+            "cal_Z3f2Pa7MkQBCJHUJ_454BpUIuWv05HSiRWlqT7g",
+            "cal_Z4Y4tCA-@QBDooXQ_C9jqEjrEf6b0ua@jmEMm-Q"
+          ],
+          "managed_availability": true
+        }
+      ],
+      "required": "all"
+    }
+  ],
+  "query_periods": [
+    {
+      "start": "2025-02-03T12:20:00Z",
+      "end": "2025-03-10T12:05:47Z"
+    }
+  ],
+  "required_duration": {
+    "minutes": 30
+  },
+  "buffer": {
+    "before": {
+      "minutes": 15
+    },
+    "after": {
+      "minutes": 30
+    }
+  },
+  "max_results": 512,
+  "response_format": "slots"
+}
