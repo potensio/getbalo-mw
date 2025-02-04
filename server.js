@@ -37,7 +37,8 @@ const validateRequest = [
   body("members").isArray().notEmpty(),
   body("duration").isInt({ min: 1 }).notEmpty(),
   body("query_periods").isArray().notEmpty(),
-  body("buffer").optional().isInt({ min: 0 }),
+  body("buffer.before.minutes").optional().isInt({ min: 0 }),
+  body("buffer.after.minutes").optional().isInt({ min: 0 }),
 ];
 
 // Main POST request handler with validation

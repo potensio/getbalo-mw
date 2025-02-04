@@ -15,12 +15,7 @@ const createAvailabilityRequestBody = (
         required: "all",
       },
     ],
-    query_periods: [
-      {
-        start: query_periods.start,
-        end: query_periods.end,
-      },
-    ],
+    query_periods: query_periods,
     required_duration: {
       minutes: duration,
     },
