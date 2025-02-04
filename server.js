@@ -42,7 +42,7 @@ const validateRequest = [
 ];
 
 // Main POST request handler with validation
-app.post("*", validateRequest, async (req, res) => {
+app.post("/api/availability", validateRequest, async (req, res) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -64,7 +64,7 @@ app.post("*", validateRequest, async (req, res) => {
           duration,
           buffer
         );
-        return fetchCronofyAvailability(requestBody);
+        return fetchCronofyAvailability(requestBody, batch);
       })
     );
 

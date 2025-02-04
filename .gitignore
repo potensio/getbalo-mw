@@ -1,0 +1,30 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Build directories
+dist/
+build/
+coverage/
+
+# Environment files
+.env
+
+# Optional npm cache directory
+.npm/
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.*.json
+
+# IDE and editor directories
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db 
