@@ -16,14 +16,7 @@ const port = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",")
-      : "*",
-    methods: ["POST"],
-  })
-);
+app.use(cors()); // Allow all origins
 
 // Rate limiting
 const limiter = rateLimit({

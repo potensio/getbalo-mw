@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "build": "npm ci && npm run lint",
+    "lint": "echo 'No linting configured'",
+    "test:build": "npm run build && node -e \"console.log('Build test successful!')\""
   },
   "author": "",
   "license": "ISC",
