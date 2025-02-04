@@ -74,10 +74,7 @@ app.post("/api/availability", validateRequest, async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Internal Server Error",
-      message:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Something went wrong",
+      message: error.message || "Something went wrong",
     });
   }
 });
@@ -88,10 +85,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     error: "Internal Server Error",
-    message:
-      process.env.NODE_ENV === "development"
-        ? err.message
-        : "Something went wrong",
+    message: err.message || "Something went wrong",
   });
 });
 

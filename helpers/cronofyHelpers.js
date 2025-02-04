@@ -39,7 +39,7 @@ const fetchCronofyAvailability = async (requestBody, originalMembers = []) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.CRONOFY_AUTH_TOKEN}`,
+      Authorization: `Bearer CRN_aSorJHcYAKAZr4Cxqb11HZTSNnJhS8W67QDvvT`,
     },
     body: JSON.stringify(requestBody),
   });
