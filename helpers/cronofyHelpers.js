@@ -13,7 +13,7 @@ const createAvailabilityRequestBody = (
           calendar_ids: member.calendar_ids,
           managed_availability: true,
         })),
-        required: "all",
+        required: 1,
       },
     ],
     query_periods: query_periods,
