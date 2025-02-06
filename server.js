@@ -66,7 +66,7 @@ const validateApiToken = (req, res, next) => {
 };
 
 // Cache and TTL definitions:
-const CACHE_TTL = 900000; // 15 minutes
+const CACHE_TTL = 0; // 15 minutes
 const cache = new Map();
 
 // Main POST request handler with validation
