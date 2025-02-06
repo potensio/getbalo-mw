@@ -65,25 +65,35 @@ const validateApiToken = (req, res, next) => {
   next();
 };
 
+// Cache and TTL definitions:
+const CACHE_TTL = 900000; // 15 minutes
+const cache = new Map();
+
 // Main POST request handler with validation
 app.post(
   "/api/availability",
   validateApiToken,
   validateRequest,
   async (req, res) => {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array(),
-      });
+    // Destructure minute_from_now along with other properties.
+    // "minute_from_now" is used solely for the caching key.
+    const { minute_from_now, members, duration, query_periods, buffer } =
+      req.body;
+
+    // Build a cache key using minute_from_now.
+    const cacheKey = `availability:${minute_from_now}`;
+
+    // Check if the cache already has data for this minute_from_now value.
+    if (cache.has(cacheKey)) {
+      console.log("Serving from cache for minute_from_now:", minute_from_now);
+      return res.json({ success: true, data: cache.get(cacheKey) });
     }
 
     try {
-      const { members, duration, query_periods, buffer } = req.body;
+      // Create member batches from the provided members list
       const memberBatches = batchMembers(members);
 
+      // Call Cronofy for each batch. Note how we do not include minute_from_now in the Cronofy request.
       const results = await Promise.all(
         memberBatches.map(async (batch) => {
           const requestBody = createAvailabilityRequestBody(
@@ -96,6 +106,15 @@ app.post(
         })
       );
 
+      // Cache the results using our cache key.
+      cache.set(cacheKey, results);
+      // Set up a timer to expire (remove) the cache entry after 15 minutes.
+      setTimeout(() => {
+        cache.delete(cacheKey);
+        console.log("Cache expired for key:", cacheKey);
+      }, CACHE_TTL);
+
+      // Return the fetched results.
       res.json({ success: true, data: results });
     } catch (error) {
       console.error("Error processing request:", error);
