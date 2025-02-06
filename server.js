@@ -75,17 +75,17 @@ app.post(
   validateApiToken,
   validateRequest,
   async (req, res) => {
-    // Destructure minute_from_now along with other properties.
-    // "minute_from_now" is used solely for the caching key.
-    const { minute_from_now, members, duration, query_periods, buffer } =
+    // Destructure minutes_from_now along with other properties.
+    // "minutes_from_now" is used solely for the caching key.
+    const { minutes_from_now, members, duration, query_periods, buffer } =
       req.body;
 
-    // Build a cache key using minute_from_now.
-    const cacheKey = `availability:${minute_from_now}`;
+    // Build a cache key using minutes_from_now.
+    const cacheKey = `availability:${minutes_from_now}`;
 
-    // Check if the cache already has data for this minute_from_now value.
+    // Check if the cache already has data for this minutes_from_now value.
     if (cache.has(cacheKey)) {
-      console.log("Serving from cache for minute_from_now:", minute_from_now);
+      console.log("Serving from cache for minutes_from_now:", minutes_from_now);
       return res.json({ success: true, data: cache.get(cacheKey) });
     }
 
@@ -93,7 +93,7 @@ app.post(
       // Create member batches from the provided members list
       const memberBatches = batchMembers(members);
 
-      // Call Cronofy for each batch. Note how we do not include minute_from_now in the Cronofy request.
+      // Call Cronofy for each batch. Note how we do not include minutes_from_now in the Cronofy request.
       const results = await Promise.all(
         memberBatches.map(async (batch) => {
           const requestBody = createAvailabilityRequestBody(
