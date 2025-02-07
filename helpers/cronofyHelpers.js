@@ -95,7 +95,7 @@ const fetchCronofyAvailability = async (requestBody, originalMembers = []) => {
 };
 
 // Helper function to batch members into groups of 5
-const batchMembers = (members, batchSize = 5) => {
+const batchMembers = (members, batchSize = 10) => {
   const batches = [];
   for (let i = 0; i < members.length; i += batchSize) {
     batches.push(members.slice(i, i + batchSize));

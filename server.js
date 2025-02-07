@@ -66,8 +66,30 @@ const validateApiToken = (req, res, next) => {
 };
 
 // Cache and TTL definitions:
-const CACHE_TTL = 0; // 15 minutes
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+// Cache structure to store both data and metadata
 const cache = new Map();
+
+// Helper function to extract member subs from results
+const extractMemberSubs = (results) => {
+  const memberSubs = new Set();
+  results.forEach((result) => {
+    result.available_slots.forEach((slot) => {
+      slot.participants.forEach((participant) => {
+        memberSubs.add(participant.sub);
+      });
+    });
+  });
+  return memberSubs;
+};
+
+// Helper function to get missing members - now with O(1) lookup
+const getMissingMembers = (cacheEntry, requestedMembers) => {
+  return requestedMembers.filter(
+    (member) => !cacheEntry.memberSubs.has(member.sub)
+  );
+};
 
 // Main POST request handler with validation
 app.post(
@@ -75,46 +97,81 @@ app.post(
   validateApiToken,
   validateRequest,
   async (req, res) => {
-    // Destructure minutes_from_now along with other properties.
-    // "minutes_from_now" is used solely for the caching key.
     const { minutes_from_now, members, duration, query_periods, buffer } =
       req.body;
 
-    // Build a cache key using minutes_from_now.
-    const cacheKey = `availability:${minutes_from_now}`;
+    // Validate minutes_from_now
+    if (![60, 1440, 10080].includes(minutes_from_now)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid minutes_from_now value. Must be 60, 1440, or 10080.",
+      });
+    }
 
-    // Check if the cache already has data for this minutes_from_now value.
-    if (cache.has(cacheKey)) {
-      console.log("Serving from cache for minutes_from_now:", minutes_from_now);
-      return res.json({ success: true, data: cache.get(cacheKey) });
+    const cacheKey = `availability:${minutes_from_now}`;
+    let results = [];
+    let missingMembers = members;
+
+    // First check: Does cache exist for minutes_from_now?
+    if (!cache.has(cacheKey)) {
+      console.log(
+        `No cache found for minutes_from_now: ${minutes_from_now}. Fetching all data.`
+      );
+    } else {
+      // Second check: Check for missing members in existing cache
+      const cacheEntry = cache.get(cacheKey);
+      results = [...cacheEntry.data];
+      missingMembers = getMissingMembers(cacheEntry, members);
+
+      if (missingMembers.length === 0) {
+        console.log(
+          `Cache hit: Complete data found for minutes_from_now: ${minutes_from_now}`
+        );
+        return res.json({ success: true, data: results });
+      }
+      console.log(
+        `Partial cache hit: Fetching data for ${missingMembers.length} missing members`
+      );
     }
 
     try {
-      // Create member batches from the provided members list
-      const memberBatches = batchMembers(members);
+      if (missingMembers.length > 0) {
+        // Create member batches from the missing members list
+        const memberBatches = batchMembers(missingMembers);
 
-      // Call Cronofy for each batch. Note how we do not include minutes_from_now in the Cronofy request.
-      const results = await Promise.all(
-        memberBatches.map(async (batch) => {
-          const requestBody = createAvailabilityRequestBody(
-            batch,
-            query_periods,
-            duration,
-            buffer
-          );
-          return fetchCronofyAvailability(requestBody, batch);
-        })
-      );
+        // Fetch data only for missing members
+        const newResults = await Promise.all(
+          memberBatches.map(async (batch) => {
+            const requestBody = createAvailabilityRequestBody(
+              batch,
+              query_periods,
+              duration,
+              buffer
+            );
+            return fetchCronofyAvailability(requestBody, batch);
+          })
+        );
 
-      // Cache the results using our cache key.
-      cache.set(cacheKey, results);
-      // Set up a timer to expire (remove) the cache entry after 15 minutes.
-      setTimeout(() => {
-        cache.delete(cacheKey);
-        console.log("Cache expired for key:", cacheKey);
-      }, CACHE_TTL);
+        // Merge new results with existing cached results
+        results = [...results, ...newResults];
 
-      // Return the fetched results.
+        // Update cache with combined results and member subs
+        const memberSubs = extractMemberSubs(results);
+        cache.set(cacheKey, {
+          data: results,
+          memberSubs,
+          timestamp: Date.now(),
+        });
+
+        // Set up cache expiration
+        setTimeout(() => {
+          if (cache.has(cacheKey)) {
+            cache.delete(cacheKey);
+            console.log("Cache expired for key:", cacheKey);
+          }
+        }, CACHE_TTL);
+      }
+
       res.json({ success: true, data: results });
     } catch (error) {
       console.error("Error processing request:", error);
