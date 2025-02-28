@@ -30,7 +30,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Middleware for parsing JSON with size limit
-app.use(express.json({ limit: "10kb" }));
+app.use(express.json({ limit: "1000kb" }));
 
 // Request validation middleware
 const validateRequest = [
